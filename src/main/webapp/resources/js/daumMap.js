@@ -1,216 +1,131 @@
-// 마커를 담을 배열입니다
-var markers = [];
+var map;				// 지도 객체
+var mMarker = null;		// 마커 객체
+var rMarker = null;		// 로드뷰 마커 객체
+var rvContainer;		
+var rv;					//로드뷰 객체
+var rvClient;
 
-var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
-    mapOption = {
-        center: new daum.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표
-        level: 3 // 지도의 확대 레벨
-    };  
-
-// 지도를 생성합니다    
-var map = new daum.maps.Map(mapContainer, mapOption); 
-
-// 장소 검색 객체를 생성합니다
-var ps = new daum.maps.services.Places();  
-
-// 검색 결과 목록이나 마커를 클릭했을 때 장소명을 표출할 인포윈도우를 생성합니다
-var infowindow = new daum.maps.InfoWindow({zIndex:1});
-
-// 키워드로 장소를 검색합니다
-searchPlaces();
-
-// 키워드 검색을 요청하는 함수입니다
-function searchPlaces() {
-
-    var keyword = document.getElementById('keyword').value;
-
-    if (!keyword.replace(/^\s+|\s+$/g, '')) {
-        alert('키워드를 입력해주세요!');
-        return false;
-    }
-
-    // 장소검색 객체를 통해 키워드로 장소검색을 요청합니다
-    ps.keywordSearch( keyword, placesSearchCB); 
+function go(lat, lng){
+	var position = new daum.maps.LatLng(lat, lng);
+	map.panTo(position);
+	toggleRoadview(position);
+	
+	if (mMarker == null) {
+		mMarker = new daum.maps.Marker({
+		    map: map,
+		    position: position			// 지도에 마커를 생성합니다 
+		});
+		rMarker = new daum.maps.Marker({
+	        position: position,
+	        map: rv 					//map 대신 rv(로드뷰 객체)로 설정하면 로드뷰에 올라갑니다.
+	    });
+	} else {
+		mMarker.setPosition(position);		// 마커 위치를 옮깁니다
+		rMarker.setPosition(position);		// 마커 위치를 옮깁니다
+	}
+    // 로드뷰 마커가 중앙에 오도록 로드뷰의 viewpoint 조정합니다.
+    var projection = rv.getProjection(); // viewpoint(화면좌표)값을 추출할 수 있는 projection 객체를 가져옵니다.
+    // 마커의 position과 altitude값을 통해 viewpoint값(화면좌표)를 추출합니다.
+    var viewpoint = projection.viewpointFromCoords(rMarker.getPosition(), rMarker.getAltitude());
+    rv.setViewpoint(viewpoint); //로드뷰에 뷰포인트를 설정합니다.
 }
 
-// 장소검색이 완료됐을 때 호출되는 콜백함수 입니다
-function placesSearchCB(data, status, pagination) {
-    if (status === daum.maps.services.Status.OK) {
+//로드뷰 toggle함수
+function toggleRoadview(position){
 
-        // 정상적으로 검색이 완료됐으면
-        // 검색 목록과 마커를 표출합니다
-        displayPlaces(data);
-
-        // 페이지 번호를 표출합니다
-        displayPagination(pagination);
-
-    } else if (status === daum.maps.services.Status.ZERO_RESULT) {
-
-        alert('검색 결과가 존재하지 않습니다.');
-        return;
-
-    } else if (status === daum.maps.services.Status.ERROR) {
-
-        alert('검색 결과 중 오류가 발생했습니다.');
-        return;
-
-    }
-}
-
-// 검색 결과 목록과 마커를 표출하는 함수입니다
-function displayPlaces(places) {
-
-    var listEl = document.getElementById('placesList'), 
-    menuEl = document.getElementById('menu_wrap'),
-    fragment = document.createDocumentFragment(), 
-    bounds = new daum.maps.LatLngBounds(), 
-    listStr = '';
-    
-    // 검색 결과 목록에 추가된 항목들을 제거합니다
-    removeAllChildNods(listEl);
-
-    // 지도에 표시되고 있는 마커를 제거합니다
-    removeMarker();
-    
-    for ( var i=0; i<places.length; i++ ) {
-
-        // 마커를 생성하고 지도에 표시합니다
-        var placePosition = new daum.maps.LatLng(places[i].y, places[i].x),
-            marker = addMarker(placePosition, i), 
-            itemEl = getListItem(i, places[i]); // 검색 결과 항목 Element를 생성합니다
-
-        // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해
-        // LatLngBounds 객체에 좌표를 추가합니다
-        bounds.extend(placePosition);
-
-        // 마커와 검색결과 항목에 mouseover 했을때
-        // 해당 장소에 인포윈도우에 장소명을 표시합니다
-        // mouseout 했을 때는 인포윈도우를 닫습니다
-        (function(marker, title) {
-            daum.maps.event.addListener(marker, 'mouseover', function() {
-                displayInfowindow(marker, title);
-            });
-
-            daum.maps.event.addListener(marker, 'mouseout', function() {
-                infowindow.close();
-            });
-
-            itemEl.onmouseover =  function () {
-                displayInfowindow(marker, title);
-            };
-
-            itemEl.onmouseout =  function () {
-                infowindow.close();
-            };
-        })(marker, places[i].place_name);
-
-        fragment.appendChild(itemEl);
-    }
-
-    // 검색결과 항목들을 검색결과 목록 Elemnet에 추가합니다
-    listEl.appendChild(fragment);
-    menuEl.scrollTop = 0;
-
-    // 검색된 장소 위치를 기준으로 지도 범위를 재설정합니다
-    map.setBounds(bounds);
-}
-
-// 검색결과 항목을 Element로 반환하는 함수입니다
-function getListItem(index, places) {
-
-    var el = document.createElement('li'),
-    itemStr = '<span class="markerbg marker_' + (index+1) + '"></span>' +
-                '<div class="info">' +
-                '   <h5>' + places.place_name + '</h5>';
-
-    if (places.road_address_name) {
-        itemStr += '    <span>' + places.road_address_name + '</span>' +
-                    '   <span class="jibun gray">' +  places.address_name  + '</span>';
-    } else {
-        itemStr += '    <span>' +  places.address_name  + '</span>'; 
-    }
-                 
-      itemStr += '  <span class="tel">' + places.phone  + '</span>' +
-                '</div>';           
-
-    el.innerHTML = itemStr;
-    el.className = 'item';
-
-    return el;
-}
-
-// 마커를 생성하고 지도 위에 마커를 표시하는 함수입니다
-function addMarker(position, idx, title) {
-    var imageSrc = 'http://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png', // 마커 이미지 url, 스프라이트 이미지를 씁니다
-        imageSize = new daum.maps.Size(36, 37),  // 마커 이미지의 크기
-        imgOptions =  {
-            spriteSize : new daum.maps.Size(36, 691), // 스프라이트 이미지의 크기
-            spriteOrigin : new daum.maps.Point(0, (idx*46)+10), // 스프라이트 이미지 중 사용할 영역의 좌상단 좌표
-            offset: new daum.maps.Point(13, 37) // 마커 좌표에 일치시킬 이미지 내에서의 좌표
-        },
-        markerImage = new daum.maps.MarkerImage(imageSrc, imageSize, imgOptions),
-            marker = new daum.maps.Marker({
-            position: position, // 마커의 위치
-            image: markerImage 
-        });
-
-    marker.setMap(map); // 지도 위에 마커를 표출합니다
-    markers.push(marker);  // 배열에 생성된 마커를 추가합니다
-
-    return marker;
-}
-
-// 지도 위에 표시되고 있는 마커를 모두 제거합니다
-function removeMarker() {
-    for ( var i = 0; i < markers.length; i++ ) {
-        markers[i].setMap(null);
-    }   
-    markers = [];
-}
-
-// 검색결과 목록 하단에 페이지번호를 표시는 함수입니다
-function displayPagination(pagination) {
-    var paginationEl = document.getElementById('pagination'),
-        fragment = document.createDocumentFragment(),
-        i; 
-
-    // 기존에 추가된 페이지번호를 삭제합니다
-    while (paginationEl.hasChildNodes()) {
-        paginationEl.removeChild (paginationEl.lastChild);
-    }
-
-    for (i=1; i<=pagination.last; i++) {
-        var el = document.createElement('a');
-        el.href = "#";
-        el.innerHTML = i;
-
-        if (i===pagination.current) {
-            el.className = 'on';
+    //전달받은 좌표(position)에 가까운 로드뷰의 panoId를 추출하여 로드뷰를 띄웁니다
+    rvClient.getNearestPanoId(position, 50, function(panoId) {
+        if (panoId === null) {
+            rvContainer.style.display = 'none'; 	//로드뷰를 넣은 컨테이너를 숨깁니다
         } else {
-            el.onclick = (function(i) {
-                return function() {
-                    pagination.gotoPage(i);
-                }
-            })(i);
+            rvContainer.style.display = 'block';	 //로드뷰를 넣은 컨테이너를 보이게합니다
+            rv.setPanoId(panoId, position);			 //panoId를 통한 로드뷰 실행
+            rv.relayout(); 		//로드뷰를 감싸고 있는 영역이 변경됨에 따라, 로드뷰를 재배열합니다
         }
-
-        fragment.appendChild(el);
-    }
-    paginationEl.appendChild(fragment);
+    });
 }
 
-// 검색결과 목록 또는 마커를 클릭했을 때 호출되는 함수입니다
-// 인포윈도우에 장소명을 표시합니다
-function displayInfowindow(marker, title) {
-    var content = '<div style="padding:5px;z-index:1;">' + title + '</div>';
-
-    infowindow.setContent(content);
-    infowindow.open(map, marker);
-}
-
- // 검색결과 목록의 자식 Element를 제거하는 함수입니다
-function removeAllChildNods(el) {   
-    while (el.hasChildNodes()) {
-        el.removeChild (el.lastChild);
-    }
-}
+$(function() {
+	var container = document.getElementById('map');		//지도를 담을 영역의 DOM 레퍼런스
+	var mapCenter = new daum.maps.LatLng(37.569357, 126.986047);
+	var options = { 	//지도를 생성할 때 필요한 기본 옵션
+		center: mapCenter,	//지도의 중심좌표.
+		level: 3		//지도의 레벨(확대, 축소 정도)
+	};
+	map = new daum.maps.Map(container, options);		 //지도 생성 및 객체 리턴
+	
+	rvContainer = document.getElementById('roadview');   //로드뷰를 표시할 div
+	rv = new daum.maps.Roadview(rvContainer); 		 	 //로드뷰 객체
+	rvClient = new daum.maps.RoadviewClient(); 			 //좌표로부터 로드뷰 파노ID를 가져올 로드뷰 helper객체
+	toggleRoadview(mapCenter);
+	
+	// 검색창 나왔다 사라지는 기능
+	var summon = false;
+	$("#summonSearchArea").click(function() {
+		if (summon) {
+			$("#siteSM").css("top","205px");
+			$("#resultArea").css("padding-top", "300px");
+		} else {
+			$("#siteSM").css("top","254px");
+			$("#resultArea").css("padding-top", "355px");
+		}
+		summon = !summon;
+	});
+	
+	$("#what").keyup(function(e){
+		var what = $(this).val();
+		//if(e.keyCode == 13){
+			var lat = map.getCenter().getLat();
+			var lng = map.getCenter().getLng();
+			
+			$.ajax({
+				url : "https://dapi.kakao.com/v2/local/search/keyword.json",
+				data : {query : what, x : lng, y : lat, radius : 1000, sort : "distance"},
+				beforeSend : function(req){
+					req.setRequestHeader("Authorization", "KakaoAK adbfc124b4b8faba06f34df8ae1a2187");
+				},
+				jsonpCallback : "?",
+				success : function(data){
+					$("#resultArea2").empty();
+					$.each(data.documents, function(i, l){
+						var s = $("<span></span>").attr("class","locName").text(l.place_name);
+						var td1 = $("<td></td>").append(s, " - " + l.distance + "m");
+						var tr1 = $("<tr></tr>").append(td1);
+						var td2 = $("<td></td>").text(l.road_address_name);
+						var tr2 = $("<tr></tr>").append(td2);
+						var td3 = $("<td></td>").attr("align","right").text(l.phone);
+						var tr3 = $("<tr></tr>").append(td3);
+						var table = $("<table></table>").attr("onclick", "go("+l.y+","+l.x+");").attr("class","loc").append(tr1,tr2,tr3);
+						$("#resultArea2").append(table);
+					});
+				}
+			});
+		//}
+	});
+			
+	$("#loc").keyup(function(e) {
+		//if (e.keyCode == 13) {
+			// 지명 => 위도/경도 : geocoding
+			var locName = $(this).val();	
+			$.ajax({
+				url : "https://dapi.kakao.com/v2/local/search/address.json",
+				data : {query : locName},
+				beforeSend : function(req){
+					req.setRequestHeader("Authorization", "KakaoAK adbfc124b4b8faba06f34df8ae1a2187");
+				},
+				jsonpCallback : "?",
+				success : function(data){
+					// 지도 중심을 부드럽게 이동시킵니다
+				    // 만약 이동할 거리가 지도 화면보다 크면 부드러운 효과 없이 이동합니다
+					var position = new daum.maps.LatLng(data.documents[0].y, data.documents[0].x);
+				    map.panTo(position);
+					// 특정 위치의 좌표와 가까운 로드뷰의 panoId를 추출하여 로드뷰를 띄운다.
+					rvClient.getNearestPanoId(position, 50, function(panoId) {
+					    rv.setPanoId(panoId, position); //panoId와 중심좌표를 통해 로드뷰 실행
+					});
+				}
+			});
+		//}
+	});
+	
+});
