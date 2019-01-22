@@ -1,0 +1,65 @@
+@charset "EUC-KR";
+.logintBtn{
+	border: none;
+	background-color: transparent;
+}
+#loginForm{
+	font-size: 10pt;
+	align-content: center;
+	align-items: center;
+}
+.id{
+	border: thick;
+	width: 70px;
+}
+#joinIdCheckMsg{
+	font-weight: 800;
+}
+.joinB{
+	background-color: #08A600;
+	border: none;
+	color: white;
+	width: 100%;
+	margin-top: 20px;
+	height: 33px;
+}
+.joinLabel{
+	margin-bottom: 5px;
+}
+.joinInput{
+	margin: 0;
+	width: 200px;
+	height: 30px;
+}
+.memberPhoto{
+	max-width: 320px;
+}
+.errMsg{
+	color: red;
+	font-weight: 600;
+	margin-top: 25px;
+}
+
+.mySnsTable{
+	border-collapse: collapse;
+	background-color: white;
+	margin-top: 35px;
+	width: 590px;
+}
+.msTh{
+	font-weight: bold;
+	text-align: left;
+	padding: 10px;
+}
+.msTd{
+	border-top: #E6ECF0 solid 1px;
+}
+.msTd:HOVER {
+	background-color: #EDEDED;
+}
+.msBtn{
+	border: none;
+	background-color: transparent;
+	font-size: 12pt;
+	cursor: pointer;
+}

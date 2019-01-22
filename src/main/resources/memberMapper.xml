@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lee.jscbpm2.member.MemberMapper">
+	<insert id="join" parameterType="com.lee.jscbpm2.member.Member">
+		insert into JSC_MEMBER values(#{jm_id},#{jm_pw},#{jm_name},#{jm_addr},#{jm_photo})
+	</insert>
+	
+	<select id="getMemberInfoByJM_ID" parameterType="com.lee.jscbpm2.member.Member" resultType="com.lee.jscbpm2.member.Member">
+		select * from JSC_MEMBER where jm_id = #{jm_id}
+	</select>
+	
+	<delete id="delete" parameterType="com.lee.jscbpm2.member.Member">
+		delete from JSC_MEMBER where jm_id = #{jm_id}
+	</delete>
+	
+	<update id="updateWithPhoto" parameterType="com.lee.jscbpm2.member.Member">
+		update JSC_MEMBER set jm_pw=#{jm_pw}, jm_name=#{jm_name}, jm_addr=#{jm_addr}, jm_photo=#{jm_photo} where jm_id=#{jm_id}
+	</update>
+	<update id="updateWithoutPhoto" parameterType="com.lee.jscbpm2.member.Member">
+		update JSC_MEMBER set jm_pw=#{jm_pw}, jm_name=#{jm_name}, jm_addr=#{jm_addr} where jm_id=#{jm_id}
+	</update>
+</mapper>

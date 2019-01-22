@@ -1,0 +1,19 @@
+@charset "EUC-KR";
+.download{
+	width: 23px;
+	height: 23px;
+}
+.downTd{
+	background-image: url("../img/cloud-download.png");
+	background-repeat: no-repeat;
+	background-size: 23px;
+	background-position: left;
+	padding-left: 25px;
+	color: #157EFB;
+	height: 23px;
+}
+.dwInput{
+	margin-left: 38px;
+	margin-top: 3px;
+	width: 80%;
+}

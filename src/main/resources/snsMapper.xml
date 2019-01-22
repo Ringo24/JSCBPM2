@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lee.jscbpm2.sns.SnsMapper">
+	<insert id="write" parameterType="com.lee.jscbpm2.sns.Sns">
+		insert into JSC_SNS values(jsc_sns_seq.nextval, #{js_id}, #{js_txt}, sysdate)
+	</insert>
+	<insert id="writeReply" parameterType="com.lee.jscbpm2.sns.Reply">
+		insert into JSC_REPLY values(jsc_reply_seq.nextval,#{jr_jsno}, #{jr_id}, #{jr_txt}, sysdate)
+	</insert>
+	
+	<select id="getOneSns" parameterType="com.lee.jscbpm2.sns.Sns" resultType="com.lee.jscbpm2.sns.Sns">
+		select * from JSC_SNS where js_no = #{js_no}
+	</select>
+	<select id="getReply" parameterType="com.lee.jscbpm2.sns.Sns" resultType="com.lee.jscbpm2.sns.Reply">
+		select r.*, m.jm_name from JSC_REPLY r, JSC_MEMBER m 
+		where jr_jsno = #{js_no} and jr_id = jm_id 
+		order by jr_date
+	</select>
+	<select id="getSns" parameterType="com.lee.jscbpm2.sns.SnsNo" resultType="com.lee.jscbpm2.sns.Sns">
+		select * from (
+			select rownum r, js_no, js_id, js_txt, js_date, jm_name, jm_photo  
+			from (select * from JSC_SNS, JSC_MEMBER where js_id = jm_id order by js_no)
+		) where r &lt;= #{start} and r &gt;= #{end} 
+		order by r desc
+	</select>
+	<select id="getAllSnsCount" resultType="java.lang.Integer">
+		select count(*) from JSC_SNS, JSC_MEMBER where js_id = jm_id
+	</select>
+	<select id="search" parameterType="com.lee.jscbpm2.sns.Query" resultType="com.lee.jscbpm2.sns.Sns">
+		select * from JSC_SNS, JSC_MEMBER 
+		where js_id = jm_id 
+		and ${search} like '%'||#{query}||'%' 
+		order by js_date
+	</select>
+	
+	<update id="update" parameterType="com.lee.jscbpm2.sns.Sns">
+		update JSC_SNS set js_txt = #{js_txt} where js_no = #{js_no}
+	</update>
+	<update id="updateReply" parameterType="com.lee.jscbpm2.sns.Reply">
+		update JSC_REPLY set jr_txt = #{jr_txt} where jr_no = #{jr_no}
+	</update>
+	
+	<delete id="delete" parameterType="com.lee.jscbpm2.sns.Sns">
+		delete from JSC_SNS where js_no = #{js_no}
+	</delete>
+	<delete id="deleteReplybyJrjsno" parameterType="com.lee.jscbpm2.sns.Sns">
+		delete from JSC_REPLY where jr_jsno = #{js_no}
+	</delete>
+	<delete id="deleteReplybyJrno" parameterType="com.lee.jscbpm2.sns.Reply">
+		delete from JSC_REPLY where jr_no = #{jr_no}
+	</delete>
+</mapper>

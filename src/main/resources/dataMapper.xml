@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lee.jscbpm2.data.DataMapper">
+	<delete id="delete" parameterType="com.lee.jscbpm2.data.Data">
+		delete from JSC_DATA where jd_no=#{jd_no}
+	</delete>
+	
+	<select id="getData" parameterType="com.lee.jscbpm2.sns.SnsNo" resultType="com.lee.jscbpm2.data.Data">
+		select * from (
+			select rownum r, jd_no, jd_id, jd_title, jd_file, jd_date, jm_name, jm_photo  
+			from (select * from JSC_DATA, JSC_MEMBER where jd_id = jm_id order by jd_no)
+		) where r &lt;= #{start} and r &gt;= #{end} 
+		order by r desc
+	</select>
+	<select id="getOneData" parameterType="com.lee.jscbpm2.data.Data" resultType="com.lee.jscbpm2.data.Data">
+		select * from JSC_DATA 
+		where jd_no = #{jd_no}
+	</select>
+	<select id="search" parameterType="com.lee.jscbpm2.sns.Query" resultType="com.lee.jscbpm2.data.Data">
+		select * from JSC_DATA, JSC_MEMBER 
+		where jd_id = jm_id and ${search} like '%'||#{query}||'%' 
+		order by jd_date
+	</select>
+	<select id="getAllDataCount" resultType="java.lang.Integer">
+		select count(*) from JSC_DATA, JSC_MEMBER where jd_id = jm_id
+	</select>
+	
+	<insert id="write" parameterType="com.lee.jscbpm2.data.Data">
+		insert into JSC_DATA 
+		values(jsc_data_seq.nextval, #{jd_id}, #{jd_title}, #{jd_file}, sysdate)
+	</insert>
+	
+	<update id="updateNoFile" parameterType="com.lee.jscbpm2.data.Data">
+		update JSC_DATA set jd_title=#{jd_title} where jd_no=#{jd_no}
+	</update>
+	<update id="updateFile" parameterType="com.lee.jscbpm2.data.Data">
+		update JSC_DATA set jd_title=#{jd_title}, jd_file=#{jd_file} where jd_no=#{jd_no}
+	</update>
+</mapper>
