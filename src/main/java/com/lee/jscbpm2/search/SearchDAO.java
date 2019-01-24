@@ -81,4 +81,36 @@ private ArrayList<Search> searches;
 			req.setAttribute("r", "검색 실패");
 		}
 	}
+	public String shopping(HttpServletRequest req, HttpServletResponse res) {
+		try {
+			int display = 10;
+			String query = URLEncoder.encode(req.getParameter("query"), "utf-8");
+			
+			String addr = String.format("https://openapi.naver.com/v1/search/shop.json?query=%s&display=%d", query, display);
+			URL u = new URL(addr);
+			HttpsURLConnection huc = (HttpsURLConnection) u.openConnection();
+			huc.addRequestProperty("X-Naver-Client-Id", "KFaEaXXnnCsk9cccpwc8"); // 헤더명, 값
+			huc.addRequestProperty("X-Naver-Client-Secret", "cLDc7wtI3G");
+			
+			InputStream is = huc.getInputStream();
+			
+			InputStreamReader isr = new InputStreamReader(is, "utf-8");
+			BufferedReader br = new BufferedReader(isr);
+			String line = null;
+			
+			// 문자열 붙이기
+			StringBuffer sb = new StringBuffer();
+			
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+			}
+			String json = sb.toString();
+			req.setAttribute("r", "검색 완료");
+			return json;
+		} catch (Exception e) {
+			e.printStackTrace();
+			req.setAttribute("r", "검색 실패");
+			return null;
+		}
+	}
 }

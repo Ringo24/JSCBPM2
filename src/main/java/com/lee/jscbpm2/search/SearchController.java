@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.lee.jscbpm2.member.MemberDAO;
 import com.lee.jscbpm2.sns.Query;
@@ -31,6 +32,10 @@ public class SearchController {
 		mDAO.loginCheck(req, res);
 		req.setAttribute("contentPage", "search/shopping.jsp");
 		return "index";
+	}
+	@RequestMapping(value = "search.shop", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+	public @ResponseBody String searchJson(HttpServletRequest req, HttpServletResponse res) {
+		return scDAO.shopping(req, res);
 	}
 	@RequestMapping(value = "map.go", method = RequestMethod.GET)
 	public String goMap(HttpServletRequest req, HttpServletResponse res) {
