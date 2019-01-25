@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="resources/css/index.css">
 <link rel="stylesheet" href="resources/css/member.css">
 <link rel="stylesheet" href="resources/css/search.css">
+<link rel="stylesheet" href="resources/css/map.css">
 <script type="text/javascript" src="resources/js/go.js"></script>
 <script type="text/javascript" src="resources/js/validCheck.js"></script>
 <script type="text/javascript" src="resources/js/check.js"></script>
@@ -53,7 +54,8 @@
 						<a href="index.do" class="menu">홈</a> 
 						<a href="data.do" class="menu">자료실</a> 
 						<a href="search.go" class="menu">검색</a>
-						<a href="map.go" class="menu">지도</a> ${r }
+						<a href="map.go" class="menu">지도</a>
+						<a href="" class="menu">일정</a> ${r }
 					</td>
 				</tr>
 			</table>
