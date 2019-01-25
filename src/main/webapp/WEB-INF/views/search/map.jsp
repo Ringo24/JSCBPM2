@@ -138,6 +138,7 @@ $(function() {
 	
 });
 </script>
+<link rel="stylesheet" href="resources/css/map.css">
 </head>
 <body>
 <div class="search">

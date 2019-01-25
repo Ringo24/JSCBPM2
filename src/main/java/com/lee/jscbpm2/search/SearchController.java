@@ -43,4 +43,10 @@ public class SearchController {
 		req.setAttribute("contentPage", "search/map.jsp");
 		return "index";
 	}
+	@RequestMapping(value = "calendar.go", method = RequestMethod.GET)
+	public String goCalendar(HttpServletRequest req, HttpServletResponse res) {
+		mDAO.loginCheck(req, res);
+		req.setAttribute("contentPage", "search/calendar.jsp");
+		return "index";
+	}
 }
